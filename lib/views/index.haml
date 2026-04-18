@@ -1,0 +1,25 @@
+.home-intro
+  %h1 Kormushoff.com
+  %p.lead A small corner of the web for projects and experiments.
+  .projects
+    %h2 Projects
+    %ul
+      %li
+        %a{href: "/henry"} Henry's Belt Journey
+        %span.desc A phone-first app to help my five-year-old learn his martial arts belts and focus bands.
+%style
+  :plain
+    body { font-family: 'Nunito', system-ui, -apple-system, sans-serif; color: #1C2541; background: #FBF7EC; margin: 0; }
+    .nav { background: #1C2541; padding: 14px 24px; }
+    .nav ul { list-style: none; display: flex; gap: 24px; margin: 0; padding: 0; }
+    .nav a { color: #FBF7EC; text-decoration: none; font-weight: 600; font-size: 15px; }
+    .nav a:hover { color: #F5C842; }
+    .home-intro { max-width: 720px; margin: 60px auto; padding: 0 24px; }
+    .home-intro h1 { font-size: 40px; margin: 0 0 8px; font-weight: 700; }
+    .home-intro .lead { font-size: 18px; color: #5A6B85; margin: 0 0 40px; }
+    .projects h2 { font-size: 20px; color: #3A4660; margin: 0 0 16px; }
+    .projects ul { list-style: none; padding: 0; margin: 0; }
+    .projects li { padding: 16px 20px; background: #fff; border-radius: 12px; margin-bottom: 12px; border: 1px solid #EFE9DA; }
+    .projects a { color: #E63946; font-weight: 700; font-size: 18px; text-decoration: none; }
+    .projects a:hover { text-decoration: underline; }
+    .projects .desc { display: block; color: #5A6B85; font-size: 14px; margin-top: 4px; }

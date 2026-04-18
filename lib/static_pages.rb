@@ -5,4 +5,8 @@ class StaticPages < Sinatra::Base
     @title = "Home"
     haml :index
   end
+
+  get '/henry' do
+    send_file File.expand_path('views/henry.html', __dir__)
+  end
 end

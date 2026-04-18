@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Henry's Belt Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin:0; padding:0; min-height:100vh; font-family:'Nunito', system-ui, sans-serif; overflow-x:hidden; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 20% 10%, rgba(230,57,70,0.15), transparent 60%),
+      radial-gradient(800px 500px at 85% 90%, rgba(245,200,66,0.12), transparent 60%),
+      #1C2541;
+    transition: background 0.4s ease;
+  }
+  * { box-sizing: border-box; }
+  ::-webkit-scrollbar { width:0; height:0; }
+
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+  @keyframes pop { 0%{transform:scale(0.3);opacity:0;} 50%{transform:scale(1.05);opacity:1;} 100%{transform:scale(1);opacity:1;} }
+  @keyframes spin { 0%{transform:rotate(-20deg) scale(0.5);} 60%{transform:rotate(10deg) scale(1.1);} 100%{transform:rotate(0) scale(1);} }
+  @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(230,57,70,0.6);} 50%{box-shadow:0 0 0 8px rgba(230,57,70,0);} }
+
+  .stage { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:24px 16px 40px; gap:16px; }
+  .brand { text-align:center; color:#FBF7EC; font-family:'Fredoka', system-ui; }
+  .brand .title { font-size:32px; font-weight:600; letter-spacing:0.5px; margin:0; }
+  .brand .sub { font-family:'Nunito', system-ui; font-size:14px; color:rgba(251,247,236,0.65); margin-top:4px; }
+  .hint { text-align:center; color:rgba(251,247,236,0.5); font-size:13px; font-family:'Nunito', system-ui; margin-top:8px; }
+
+  /* Device */
+  .device {
+    width:390px; height:800px; border-radius:48px; overflow:hidden;
+    position:relative; background:#FBF7EC;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.25), 0 0 0 10px #1C2541, 0 0 0 11px rgba(255,255,255,0.08);
+    font-family:'Nunito', system-ui, sans-serif;
+  }
+  .island {
+    position:absolute; top:11px; left:50%; transform:translateX(-50%);
+    width:110px; height:32px; border-radius:20px; background:#0A0A0F; z-index:50;
+  }
+  .statusbar {
+    position:absolute; top:0; left:0; right:0; height:56px; z-index:40;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 28px 0; font-family:-apple-system, system-ui;
+    font-size:15px; font-weight:600; color:#1C2541;
+    pointer-events:none;
+  }
+  .home {
+    position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+    width:120px; height:4px; border-radius:4px; background:rgba(0,0,0,0.25); z-index:60;
+  }
+</style>
+
+<!-- React -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<script>
+  window.TWEAKS = /*EDITMODE-BEGIN*/{
+    "tone": "playful"
+  }/*EDITMODE-END*/;
+</script>
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+// ─── Data ─────────────────────────────────────────────────────
+const BELTS = [
+  { id:'white', name:'White Belt', short:'White', color:'#F5F2E8', stripe:null,
+    meaning:'A new beginning. Like fresh snow before footprints.',
+    fact:'Every black belt started with a white belt!',
+    moves:['Bow to Sensei','Ready stance','Front punch'],
+    words:['Dojo = training room','Sensei = teacher'] },
+  { id:'white-1y', name:'White with 1 Yellow Stripe', short:'White · 1 Yellow', color:'#F5F2E8', stripe:'#F5C842', stripeCount:1,
+    meaning:'First spark of sunshine. You are learning to listen.',
+    fact:'Stripes show you are growing, one step at a time.',
+    moves:['Horse stance','Front kick','High block'],
+    words:['Kiai = focus shout'] },
+  { id:'white-2y', name:'White with 2 Yellow Stripes', short:'White · 2 Yellow', color:'#F5F2E8', stripe:'#F5C842', stripeCount:2,
+    meaning:'Two sunbeams. You are strong and ready to grow.',
+    fact:'This is where Henry is RIGHT NOW. 🥋',
+    moves:['Two kicks in a row','Middle block','Strong kiai'],
+    words:['Count 1–4 in class','Respect = care for others'], isCurrent:true },
+  { id:'yellow', name:'Yellow Belt', short:'Yellow', color:'#F5C842', stripe:null,
+    meaning:'The sun. Warm, bright, and full of energy.',
+    fact:'Yellow means your power is waking up.',
+    moves:['Round kick','Low block','Front stance'],
+    words:['Courage = being brave even when it is hard'] },
+  { id:'orange', name:'Orange Belt', short:'Orange', color:'#F08A3E', stripe:null,
+    meaning:'Sunrise. Your skills are growing warmer and stronger.',
+    fact:'Orange belts can count to ten in their dojo language.',
+    moves:['Side kick','Knife-hand strike','Two-step combo'],
+    words:['Discipline = doing the right thing'] },
+  { id:'green', name:'Green Belt', short:'Green', color:'#4CAF5A', stripe:null,
+    meaning:'A tree growing tall. Roots strong, leaves reaching up.',
+    fact:'Green belts learn their first kata (a dance of moves).',
+    moves:['Back kick','Double block','First kata'],
+    words:['Perseverance = never giving up'] },
+  { id:'purple', name:'Purple Belt', short:'Purple', color:'#8E5BC4', stripe:null,
+    meaning:'The sky at dusk. You are learning to think, not just move.',
+    fact:'Purple belts help younger students in class.',
+    moves:['Jumping front kick','Combo kicks','Self-defense grab'],
+    words:['Leadership = helping others'] },
+  { id:'blue', name:'Blue Belt', short:'Blue', color:'#3B7FD8', stripe:null,
+    meaning:'The open sky. Your mind is big and clear.',
+    fact:'Blue belts can spar with control and calm.',
+    moves:['Spinning kick','Two-hand block','Sparring'],
+    words:['Control = knowing when to stop'] },
+  { id:'brown', name:'Brown Belt', short:'Brown', color:'#8B5A3C', stripe:null,
+    meaning:'Earth. You are grounded, steady, and wise.',
+    fact:'Brown belts know many katas by heart.',
+    moves:['Advanced kata','Board break','Weapons basics'],
+    words:['Wisdom = thinking before acting'] },
+  { id:'red', name:'Red Belt', short:'Red', color:'#D64545', stripe:null,
+    meaning:'Fire. Powerful — and you know how to be careful with it.',
+    fact:'Red belts are almost ready for black belt testing.',
+    moves:['Flying kick','Full sparring','Teach a move'],
+    words:['Humility = staying kind even when you are strong'] },
+  { id:'black', name:'Black Belt', short:'Black', color:'#1A1A1A', stripe:null,
+    meaning:'All colors together. The beginning of a new journey.',
+    fact:'A black belt is a white belt who never quit!',
+    moves:['Master all katas','Teach a class','Break 3 boards'],
+    words:['Mastery = always learning'] },
+];
+
+const BANDS = {
+  gold:  { earned:1, total:1, color:'#E8B84A', label:'Gold Band',   desc:'3 blue bands in a row! ⭐' },
+  yellow:{ earned:1, total:1, color:'#F5C842', label:'Yellow Band', desc:'Extra listening & focus' },
+  blue:  { earned:4, total:3, color:'#3B7FD8', label:'Blue Bands',  desc:'Hands to yourself for 3 sessions' },
+  black: { earned:7, total:10,color:'#1A1A1A', label:'Black Bands', desc:'Good work in class' },
+};
+
+const QUEST = {
+  title:"Today's Quest",
+  subtitle:'Do all 3 to earn a sticker!',
+  steps:[
+    { id:'s1', text:'Bow to the dojo — say "Osu!"', icon:'🙇' },
+    { id:'s2', text:'Show your strongest horse stance', icon:'🧍' },
+    { id:'s3', text:'Name 1 rule: hands to...?', icon:'🧠' },
+  ],
+};
+
+// ─── Belt SVG ────────────────────────────────────────────────
+function shade(hex, amt) {
+  let h = hex.replace('#','');
+  if (h.length === 3) h = h.split('').map(c=>c+c).join('');
+  const num = parseInt(h,16);
+  let r=(num>>16)&0xff, g=(num>>8)&0xff, b=num&0xff;
+  const mix = amt>0?255:0, t=Math.abs(amt);
+  r=Math.round(r+(mix-r)*t); g=Math.round(g+(mix-g)*t); b=Math.round(b+(mix-b)*t);
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+function BeltSVG({ color, stripe, stripeCount=0, size='ladder', isCurrent=false }) {
+  const w = size==='hero' ? 260 : 180;
+  const h = size==='hero' ? 90 : 60;
+  const isPale = color==='#F5F2E8' || color==='#fff';
+  const edge = isPale ? '#C9BE9E' : shade(color,-0.4);
+  const shadow = isPale ? '#D4C9A8' : shade(color,-0.25);
+  const hl = shade(color,0.22);
+  const gid = `g${color.replace('#','')}${stripeCount}${size}`;
+  return (
+    <svg viewBox="0 0 260 90" width={w} height={h} style={{display:'block', overflow:'visible'}}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={hl}/>
+          <stop offset="50%" stopColor={color}/>
+          <stop offset="100%" stopColor={shadow}/>
+        </linearGradient>
+      </defs>
+      <path d="M 5 38 L 100 38 L 100 62 L 5 62 Z" fill={`url(#${gid})`} stroke={edge} strokeWidth="1"/>
+      <path d="M 160 38 L 255 38 L 255 62 L 160 62 Z" fill={`url(#${gid})`} stroke={edge} strokeWidth="1"/>
+      {stripe && Array.from({length:stripeCount}).map((_,i)=>(
+        <rect key={i} x={210-i*14} y={38} width={8} height={24}
+          fill={stripe} stroke={shade(stripe,-0.3)} strokeWidth="0.5" rx="1"/>
+      ))}
+      <path d="M 95 30 Q 92 50 95 70 L 165 70 Q 168 50 165 30 Z"
+        fill={`url(#${gid})`} stroke={edge} strokeWidth="1"/>
+      <path d="M 100 35 Q 98 50 100 65 L 160 65 Q 162 50 160 35 Z"
+        fill="none" stroke={shadow} strokeWidth="0.8" opacity="0.5"/>
+      <ellipse cx="130" cy="50" rx="12" ry="18" fill="none" stroke={edge} strokeWidth="1" opacity="0.4"/>
+      {isCurrent && (
+        <circle cx="130" cy="10" r="6" fill="#E63946">
+          <animate attributeName="r" values="6;8;6" dur="1.2s" repeatCount="indefinite"/>
+        </circle>
+      )}
+    </svg>
+  );
+}
+
+function BandSVG({ color, size=34 }) {
+  const darker = shade(color,-0.3);
+  const hl = shade(color,0.25);
+  const gid = `bd${color.replace('#','')}`;
+  return (
+    <svg viewBox="0 0 100 36" width={size*2.3} height={size}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={hl}/>
+          <stop offset="60%" stopColor={color}/>
+          <stop offset="100%" stopColor={darker}/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="10" width="96" height="16" rx="2" fill={`url(#${gid})`} stroke={darker} strokeWidth="0.8"/>
+      <rect x="2" y="12" width="96" height="2" rx="1" fill={hl} opacity="0.6"/>
+    </svg>
+  );
+}
+
+// ─── Tones ───────────────────────────────────────────────────
+const TONES = {
+  playful: {
+    label:'Playful', bg:'#FBF7EC', accent:'#E63946', hero:'#FBF7EC',
+    heroText:'#1C2541', subText:'#5A6B85',
+    greeting:'Hi, Henry! 👋', sub:"Let's see how far you've come!",
+    tabs:{ladder:'Belts', bands:'Bands', quest:'Quest'},
+    bodyBg:'radial-gradient(1200px 600px at 20% 10%, rgba(230,57,70,0.15), transparent 60%),radial-gradient(800px 500px at 85% 90%, rgba(245,200,66,0.12), transparent 60%), #1C2541',
+  },
+  ninja: {
+    label:'Ninja Dojo', bg:'#14151A', accent:'#F5C842', hero:'#0A0A0F',
+    heroText:'#F5C842', subText:'rgba(255,255,255,0.6)',
+    greeting:'Welcome, Sensei Henry.', sub:'Train. Focus. Earn your stripes.',
+    tabs:{ladder:'Ranks', bands:'Honors', quest:'Mission'},
+    bodyBg:'radial-gradient(900px 500px at 20% 0%, rgba(245,200,66,0.18), transparent 55%),radial-gradient(700px 400px at 90% 100%, rgba(230,57,70,0.12), transparent 55%), #0A0A0F',
+  },
+  calm: {
+    label:'Calm', bg:'#F4EFE4', accent:'#4A6FA5', hero:'#E8E1D0',
+    heroText:'#1C2541', subText:'#5A6B85',
+    greeting:"Henry's Progress", sub:'Your martial arts journey so far.',
+    tabs:{ladder:'Belts', bands:'Bands', quest:'Today'},
+    bodyBg:'linear-gradient(180deg, #2E3A4B 0%, #1C2541 100%)',
+  },
+};
+
+// ─── Ladder Screen ───────────────────────────────────────────
+function LadderScreen({ onOpenBelt, T, tone }) {
+  const currentIdx = BELTS.findIndex(b=>b.isCurrent);
+  const cardBg = tone==='ninja' ? '#1C1D24' : '#fff';
+  const cardBorder = tone==='ninja' ? '#2A2B35' : '#EFE9DA';
+  const textCol = tone==='ninja' ? '#F0F0F5' : '#1C2541';
+  const mutedCol = tone==='ninja' ? 'rgba(255,255,255,0.55)' : '#5A6B85';
+
+  return (
+    <div style={{padding:'4px 16px 120px'}}>
+      <div style={{
+        background: tone==='ninja' ? 'rgba(245,200,66,0.08)' : '#FFF8E7',
+        border: tone==='ninja' ? '1.5px solid rgba(245,200,66,0.3)' : '2px solid #E8B84A',
+        borderRadius:20, padding:'16px 18px', margin:'8px 0 20px',
+        display:'flex', gap:12, alignItems:'center',
+      }}>
+        <div style={{fontSize:36}}>🥋</div>
+        <div>
+          <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:18, color:textCol}}>
+            You are belt #{currentIdx+1} of {BELTS.length}!
+          </div>
+          <div style={{fontSize:14, color:mutedCol, marginTop:2}}>
+            Tap any belt to learn about it
+          </div>
+        </div>
+      </div>
+
+      <div style={{position:'relative'}}>
+        <div style={{position:'absolute', left:22, top:30, bottom:30, width:4,
+          background:`repeating-linear-gradient(to bottom, ${T.accent} 0 8px, transparent 8px 16px)`,
+          borderRadius:2, zIndex:0}}/>
+        {BELTS.map((belt, i)=>{
+          const earned = i <= currentIdx;
+          const isNext = i === currentIdx + 1;
+          return (
+            <div key={belt.id} onClick={()=>onOpenBelt(belt)}
+              style={{
+                position:'relative', zIndex:1,
+                display:'flex', alignItems:'center', gap:12,
+                padding:'10px 12px', marginBottom:8, borderRadius:20,
+                background: belt.isCurrent ? (tone==='ninja'?'rgba(230,57,70,0.15)':'#FFEEF0')
+                  : isNext ? (tone==='ninja'?'rgba(59,127,216,0.12)':'#F0F8FF') : cardBg,
+                border: belt.isCurrent ? '2.5px solid #E63946'
+                  : isNext ? '2px dashed #3B7FD8'
+                  : `1.5px solid ${cardBorder}`,
+                cursor:'pointer', opacity: earned||isNext?1:0.5,
+              }}>
+              <div style={{
+                width:28, height:28, borderRadius:14,
+                background: earned ? '#E63946' : (tone==='ninja'?'#2A2B35':'#EFE9DA'),
+                color: earned ? '#fff' : (tone==='ninja'?'#8A8A95':'#8A7F65'),
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:14,
+                flexShrink:0,
+              }}>{earned ? '✓' : i+1}</div>
+              <div style={{flexShrink:0}}>
+                <BeltSVG color={belt.color} stripe={belt.stripe} stripeCount={belt.stripeCount} isCurrent={belt.isCurrent}/>
+              </div>
+              <div style={{flex:1, minWidth:0}}>
+                <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:15, color:textCol,
+                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                  {belt.short}
+                </div>
+                {belt.isCurrent && (
+                  <div style={{fontSize:12, fontWeight:700, color:'#E63946', marginTop:2}}>
+                    ← You are here!
+                  </div>
+                )}
+                {isNext && (
+                  <div style={{fontSize:12, fontWeight:700, color:'#3B7FD8', marginTop:2}}>
+                    Next up ⭐
+                  </div>
+                )}
+              </div>
+              <div style={{color:tone==='ninja'?'#5A5B68':'#B5AC95', fontSize:20}}>›</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Belt Detail Sheet ───────────────────────────────────────
+function BeltDetail({ belt, onClose, tone }) {
+  if (!belt) return null;
+  const bg = tone==='ninja' ? '#14151A' : '#FBF7EC';
+  const text = tone==='ninja' ? '#F0F0F5' : '#1C2541';
+  const muted = tone==='ninja' ? 'rgba(255,255,255,0.6)' : '#5A6B85';
+  return (
+    <div onClick={onClose} style={{
+      position:'absolute', inset:0, zIndex:100, background:'rgba(0,0,0,0.5)',
+      display:'flex', alignItems:'flex-end', animation:'fadeIn 0.2s ease',
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:bg, width:'100%', borderRadius:'28px 28px 0 0',
+        padding:'14px 22px 44px', maxHeight:'85%', overflowY:'auto',
+        animation:'slideUp 0.25s ease',
+      }}>
+        <div style={{width:44, height:5, borderRadius:3, background:'#D4C9A8', margin:'0 auto 18px'}}/>
+        <div style={{display:'flex', justifyContent:'center', margin:'8px 0 16px'}}>
+          <BeltSVG color={belt.color} stripe={belt.stripe} stripeCount={belt.stripeCount} size="hero" isCurrent={belt.isCurrent}/>
+        </div>
+        <h2 style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:24,
+          color:text, margin:'0 0 6px', textAlign:'center'}}>{belt.name}</h2>
+        <p style={{fontSize:16, color:muted, textAlign:'center', margin:'0 0 20px', lineHeight:1.4}}>
+          {belt.meaning}
+        </p>
+        <DetailCard icon="⭐" title="Fun Fact" accent="#E8B84A" tone={tone}>{belt.fact}</DetailCard>
+        <DetailCard icon="🥋" title="Moves to Learn" accent="#E63946" tone={tone}>
+          <ul style={{margin:'6px 0 0', paddingLeft:20}}>
+            {belt.moves.map((m,i)=><li key={i} style={{marginBottom:4}}>{m}</li>)}
+          </ul>
+        </DetailCard>
+        <DetailCard icon="💬" title="Words to Know" accent="#3B7FD8" tone={tone}>
+          <ul style={{margin:'6px 0 0', paddingLeft:20}}>
+            {belt.words.map((w,i)=><li key={i} style={{marginBottom:4}}>{w}</li>)}
+          </ul>
+        </DetailCard>
+        <button onClick={onClose} style={{
+          width:'100%', padding:14, marginTop:16,
+          background:'#1C2541', color:'#fff', border:'none',
+          borderRadius:16, fontFamily:"'Fredoka', system-ui",
+          fontWeight:500, fontSize:17, cursor:'pointer',
+        }}>Got it!</button>
+      </div>
+    </div>
+  );
+}
+
+function DetailCard({ icon, title, accent, children, tone }) {
+  const bg = tone==='ninja' ? '#1C1D24' : '#fff';
+  const text = tone==='ninja' ? '#F0F0F5' : '#1C2541';
+  const body = tone==='ninja' ? '#D0D0D8' : '#3A4660';
+  return (
+    <div style={{
+      background:bg, borderRadius:18, padding:'14px 16px', marginBottom:12,
+      border:`2px solid ${accent}22`, borderLeft:`4px solid ${accent}`,
+    }}>
+      <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:15, color:text, marginBottom:4}}>
+        {icon} {title}
+      </div>
+      <div style={{fontSize:15, color:body, lineHeight:1.45}}>{children}</div>
+    </div>
+  );
+}
+
+// ─── Bands Screen ────────────────────────────────────────────
+function BandsScreen({ tone }) {
+  const textCol = tone==='ninja' ? '#F0F0F5' : '#1C2541';
+  const mutedCol = tone==='ninja' ? 'rgba(255,255,255,0.55)' : '#5A6B85';
+  const cardBg = tone==='ninja' ? '#1C1D24' : '#fff';
+  const cardBorder = tone==='ninja' ? '#2A2B35' : '#EFE9DA';
+  return (
+    <div style={{padding:'4px 16px 120px'}}>
+      <div style={{
+        background:'linear-gradient(135deg, #E8B84A 0%, #F5C842 100%)',
+        borderRadius:24, padding:'20px 22px', margin:'8px 0 20px',
+        color:'#fff', boxShadow:'0 8px 24px rgba(232,184,74,0.35)',
+      }}>
+        <div style={{fontSize:42, lineHeight:1}}>🏆</div>
+        <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:22, marginTop:8}}>
+          Henry's Focus Bands
+        </div>
+        <div style={{fontSize:14, marginTop:4, opacity:0.95}}>
+          You just earned your first GOLD band today! ⭐
+        </div>
+      </div>
+
+      <BandCard band={BANDS.gold} celebrate textCol={textCol} mutedCol={mutedCol} cardBg={cardBg} cardBorder={cardBorder}/>
+      <BandCard band={BANDS.yellow} textCol={textCol} mutedCol={mutedCol} cardBg={cardBg} cardBorder={cardBorder}/>
+      <BandCard band={BANDS.blue} progress textCol={textCol} mutedCol={mutedCol} cardBg={cardBg} cardBorder={cardBorder}/>
+      <BandCard band={BANDS.black} textCol={textCol} mutedCol={mutedCol} cardBg={cardBg} cardBorder={cardBorder}/>
+
+      <div style={{
+        background:cardBg, borderRadius:20, padding:18,
+        border:`1.5px solid ${cardBorder}`, marginTop:20,
+      }}>
+        <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:16, color:textCol, marginBottom:10}}>
+          How bands work
+        </div>
+        <HowRow color="#1A1A1A" text="Black band: Good work in class" tone={tone}/>
+        <HowRow color="#3B7FD8" text="Blue band: Hands to yourself + focused for 3 sessions" tone={tone}/>
+        <HowRow color="#F5C842" text="Yellow band: Extra big listening" tone={tone}/>
+        <HowRow color="#E8B84A" text="Gold band: 3 blue bands in a row — amazing!" last tone={tone}/>
+      </div>
+    </div>
+  );
+}
+
+function BandCard({ band, celebrate, progress, textCol, mutedCol, cardBg, cardBorder }) {
+  return (
+    <div style={{
+      background:cardBg, borderRadius:20, padding:'14px 16px', marginBottom:10,
+      border: celebrate?'2.5px solid #E8B84A':`1.5px solid ${cardBorder}`,
+      position:'relative',
+      boxShadow: celebrate?'0 6px 18px rgba(232,184,74,0.25)':'none',
+    }}>
+      {celebrate && (
+        <div style={{
+          position:'absolute', top:-10, right:14,
+          background:'#E63946', color:'#fff', padding:'4px 10px', borderRadius:10,
+          fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:11,
+          letterSpacing:0.5, textTransform:'uppercase',
+        }}>New!</div>
+      )}
+      <div style={{display:'flex', alignItems:'center', gap:14}}>
+        <BandSVG color={band.color}/>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:16, color:textCol}}>
+            {band.label}
+          </div>
+          <div style={{fontSize:13, color:mutedCol, marginTop:2}}>{band.desc}</div>
+        </div>
+        <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:20, color:textCol}}>
+          {band.earned}
+        </div>
+      </div>
+      <div style={{display:'flex', gap:6, marginTop:12, flexWrap:'wrap'}}>
+        {Array.from({length:Math.max(band.earned,band.total)}).map((_,i)=>{
+          const filled = i < band.earned;
+          return <div key={i} style={{
+            width:16, height:16, borderRadius:8,
+            background: filled ? band.color : 'transparent',
+            border:`2px solid ${filled ? band.color : '#DDD3BE'}`,
+          }}/>;
+        })}
+      </div>
+      {progress && (
+        <div style={{fontSize:12, color:'#3B7FD8', fontWeight:700, marginTop:8}}>
+          {band.earned >= band.total ? '⭐ Ready for a gold!' : `${band.total-band.earned} more until next gold`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HowRow({ color, text, last, tone }) {
+  const border = tone==='ninja' ? '#2A2B35' : '#F4EEDC';
+  const txt = tone==='ninja' ? '#D0D0D8' : '#3A4660';
+  return (
+    <div style={{display:'flex', alignItems:'center', gap:10, padding:'8px 0',
+      borderBottom: last?'none':`1px solid ${border}`}}>
+      <div style={{width:28, height:10, borderRadius:3, background:color, flexShrink:0}}/>
+      <div style={{fontSize:14, color:txt}}>{text}</div>
+    </div>
+  );
+}
+
+// ─── Quest Screen ────────────────────────────────────────────
+function QuestScreen({ tone }) {
+  const [done, setDone] = useState(()=>{
+    try { return JSON.parse(localStorage.getItem('henry-quest')||'[]'); } catch { return []; }
+  });
+  const [reward, setReward] = useState(false);
+
+  useEffect(()=>{
+    localStorage.setItem('henry-quest', JSON.stringify(done));
+    if (done.length === QUEST.steps.length && !reward) {
+      setTimeout(()=>setReward(true), 300);
+    }
+  }, [done]);
+
+  const toggle = (id) => setDone(done.includes(id) ? done.filter(d=>d!==id) : [...done, id]);
+  const reset = () => { setDone([]); setReward(false); };
+
+  const textCol = tone==='ninja' ? '#F0F0F5' : '#1C2541';
+  const mutedCol = tone==='ninja' ? 'rgba(255,255,255,0.55)' : '#5A6B85';
+  const cardBg = tone==='ninja' ? '#1C1D24' : '#fff';
+  const cardBorder = tone==='ninja' ? '#2A2B35' : '#EFE9DA';
+
+  return (
+    <div style={{padding:'4px 16px 120px'}}>
+      <div style={{
+        background:'linear-gradient(135deg, #E63946 0%, #C1272D 100%)',
+        borderRadius:24, padding:'20px 22px', margin:'8px 0 20px',
+        color:'#fff', boxShadow:'0 8px 24px rgba(230,57,70,0.3)',
+      }}>
+        <div style={{fontSize:42, lineHeight:1}}>⚔️</div>
+        <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:22, marginTop:8}}>
+          {QUEST.title}
+        </div>
+        <div style={{fontSize:14, marginTop:4, opacity:0.95}}>{QUEST.subtitle}</div>
+      </div>
+
+      {QUEST.steps.map((s, i)=>{
+        const isDone = done.includes(s.id);
+        return (
+          <div key={s.id} onClick={()=>toggle(s.id)}
+            style={{
+              background: isDone ? (tone==='ninja'?'rgba(76,175,90,0.15)':'#E8F5E9') : cardBg,
+              border: isDone ? '2px solid #4CAF5A' : `1.5px solid ${cardBorder}`,
+              borderRadius:20, padding:'16px 18px', marginBottom:10,
+              display:'flex', alignItems:'center', gap:14, cursor:'pointer',
+              transition:'all 0.2s',
+            }}>
+            <div style={{
+              width:44, height:44, borderRadius:22,
+              background: isDone ? '#4CAF5A' : '#FFF4D6',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize:22, flexShrink:0, color:'#fff',
+            }}>{isDone ? '✓' : s.icon}</div>
+            <div style={{flex:1}}>
+              <div style={{
+                fontFamily:"'Fredoka', system-ui", fontWeight:500, fontSize:16,
+                color: isDone ? '#2E7D33' : textCol,
+              }}>Step {i+1}</div>
+              <div style={{fontSize:15, color: isDone ? '#2E7D33' : (tone==='ninja'?'#D0D0D8':'#3A4660'), marginTop:2}}>
+                {s.text}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{
+        background:cardBg, borderRadius:20, padding:18, marginTop:8,
+        border:'2px dashed #E8B84A', textAlign:'center',
+      }}>
+        <div style={{fontSize:48, filter: done.length === QUEST.steps.length ? 'none' : 'grayscale(1) opacity(0.3)'}}>🏅</div>
+        <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:16, color:textCol, marginTop:6}}>
+          {done.length === QUEST.steps.length ? 'YOU DID IT, HENRY!' : `${QUEST.steps.length - done.length} to go...`}
+        </div>
+        {done.length > 0 && (
+          <button onClick={reset} style={{
+            marginTop:12, padding:'8px 18px', background:'transparent',
+            color:mutedCol, border:`1.5px solid ${cardBorder}`, borderRadius:12,
+            fontFamily:"'Nunito', system-ui", fontWeight:600, fontSize:13, cursor:'pointer',
+          }}>Start over</button>
+        )}
+      </div>
+
+      {reward && (
+        <div onClick={()=>setReward(false)} style={{
+          position:'absolute', inset:0, zIndex:100,
+          background:'rgba(0,0,0,0.55)',
+          display:'flex', alignItems:'center', justifyContent:'center', padding:20,
+        }}>
+          <div style={{
+            background:'#FBF7EC', borderRadius:28, padding:'32px 24px',
+            textAlign:'center', maxWidth:280,
+            animation:'pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}>
+            <div style={{fontSize:80, animation:'spin 1s ease'}}>🏅</div>
+            <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:22, color:'#1C2541', margin:'12px 0 4px'}}>
+              STICKER EARNED!
+            </div>
+            <div style={{fontSize:15, color:'#5A6B85', marginBottom:20}}>
+              High five, Henry! 🙌
+            </div>
+            <button onClick={()=>setReward(false)} style={{
+              padding:'12px 24px', background:'#E63946', color:'#fff',
+              border:'none', borderRadius:14,
+              fontFamily:"'Fredoka', system-ui", fontWeight:500, fontSize:16, cursor:'pointer',
+            }}>Awesome!</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Tab Bar ─────────────────────────────────────────────────
+function TabBar({ tab, setTab, tone, labels, accent }) {
+  const items = [
+    { id:'ladder', label:labels.ladder, icon:'🥋' },
+    { id:'bands',  label:labels.bands,  icon:'🏆' },
+    { id:'quest',  label:labels.quest,  icon:'⚔️' },
+  ];
+  const bg = tone==='ninja' ? '#14151A' : '#fff';
+  const border = tone==='ninja' ? '#2A2B35' : '#EFE9DA';
+  const inactive = tone==='ninja' ? '#6B6B7A' : '#9A8F78';
+  return (
+    <div style={{
+      position:'absolute', bottom:0, left:0, right:0,
+      background:bg, borderTop:`1px solid ${border}`,
+      padding:'10px 8px 20px', display:'flex', justifyContent:'space-around', zIndex:50,
+    }}>
+      {items.map(it => {
+        const active = tab === it.id;
+        return (
+          <button key={it.id} onClick={()=>setTab(it.id)} style={{
+            flex:1, background:'transparent', border:'none',
+            padding:'6px 4px', cursor:'pointer',
+            display:'flex', flexDirection:'column', alignItems:'center', gap:2,
+            color: active ? accent : inactive,
+            fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:12,
+          }}>
+            <div style={{fontSize:22,
+              filter: active ? 'none' : 'grayscale(0.4) opacity(0.7)',
+              animation: active ? 'float 2s ease-in-out infinite' : 'none',
+            }}>{it.icon}</div>
+            <div>{it.label}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── App ─────────────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState(()=>localStorage.getItem('henry-tab') || 'ladder');
+  const [belt, setBelt] = useState(null);
+  const [tone, setTone] = useState(window.TWEAKS?.tone || 'playful');
+  const [tweaksOpen, setTweaksOpen] = useState(false);
+
+  useEffect(()=>{ localStorage.setItem('henry-tab', tab); }, [tab]);
+
+  useEffect(()=>{
+    const onMsg = (e)=>{
+      const d = e.data || {};
+      if (d.type === '__activate_edit_mode') setTweaksOpen(true);
+      if (d.type === '__deactivate_edit_mode') setTweaksOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type:'__edit_mode_available' }, '*');
+    return ()=>window.removeEventListener('message', onMsg);
+  }, []);
+
+  useEffect(()=>{
+    document.body.style.background = TONES[tone].bodyBg;
+  }, [tone]);
+
+  const T = TONES[tone];
+
+  const setTweak = (v) => {
+    window.parent.postMessage({ type:'__edit_mode_set_keys', edits:{ tone: v } }, '*');
+    setTone(v);
+  };
+
+  return (
+    <div className="stage" data-screen-label="Henry's Belt Journey">
+      <div className="brand">
+        <div className="title">Henry's Belt Journey</div>
+        <div className="sub">Mastery Martial Arts · Little Dragons</div>
+      </div>
+
+      <div className="device" style={{background:T.bg}}>
+        <div className="island"/>
+        <div className="statusbar" style={{color:tone==='ninja'?'#F0F0F5':'#1C2541'}}>
+          <span>9:41</span>
+          <span style={{display:'flex', gap:6, alignItems:'center', fontSize:13}}>
+            <span>●●●</span>
+            <span style={{border:`1.5px solid currentColor`, width:22, height:11, borderRadius:2, padding:1, display:'inline-flex'}}>
+              <span style={{background:'currentColor', flex:1, borderRadius:1}}/>
+            </span>
+          </span>
+        </div>
+
+        <div style={{
+          paddingTop:62, padding:'62px 20px 14px',
+          background:T.hero,
+          borderBottom: tone==='ninja' ? '1px solid #2A2A35' : '1px solid #EFE9DA',
+        }}>
+          <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:26, color:T.heroText}}>
+            {T.greeting}
+          </div>
+          <div style={{fontSize:14, color:T.subText, marginTop:4}}>
+            {T.sub}
+          </div>
+        </div>
+
+        <div style={{
+          position:'absolute', top:138, left:0, right:0, bottom:64,
+          overflowY:'auto', background:T.bg,
+        }}>
+          {tab === 'ladder' && <LadderScreen onOpenBelt={setBelt} T={T} tone={tone}/>}
+          {tab === 'bands'  && <BandsScreen tone={tone}/>}
+          {tab === 'quest'  && <QuestScreen tone={tone}/>}
+        </div>
+
+        <TabBar tab={tab} setTab={setTab} tone={tone} labels={T.tabs} accent={T.accent}/>
+
+        {belt && <BeltDetail belt={belt} onClose={()=>setBelt(null)} tone={tone}/>}
+
+        <div className="home" style={{background:tone==='ninja'?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.25)'}}/>
+      </div>
+
+      {tweaksOpen && (
+        <div style={{
+          position:'fixed', bottom:20, right:20, zIndex:9999,
+          background:'#fff', borderRadius:18, padding:18, width:240,
+          boxShadow:'0 20px 60px rgba(0,0,0,0.3)',
+          fontFamily:"'Nunito', system-ui",
+        }}>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+            <div style={{fontFamily:"'Fredoka', system-ui", fontWeight:600, fontSize:16}}>Tweaks</div>
+            <div style={{fontSize:12, color:'#999'}}>Live</div>
+          </div>
+          <div style={{fontSize:12, color:'#666', marginBottom:6, fontWeight:700}}>TONE</div>
+          {Object.entries(TONES).map(([k,v])=>(
+            <button key={k} onClick={()=>setTweak(k)} style={{
+              display:'block', width:'100%', textAlign:'left',
+              padding:'10px 12px', marginBottom:6,
+              background: tone===k?'#1C2541':'#F4EFE4',
+              color: tone===k?'#fff':'#1C2541',
+              border:'none', borderRadius:10, cursor:'pointer',
+              fontFamily:"'Nunito', system-ui", fontWeight:600, fontSize:14,
+            }}>{v.label}</button>
+          ))}
+        </div>
+      )}
+
+      <div className="hint">tap a belt · switch tabs · finish the quest to earn a sticker</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+</body>
+</html>

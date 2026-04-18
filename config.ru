@@ -1,4 +1,3 @@
-require 'rubygems'
-require File.join(File.dirname(__FILE__), 'lib/static_pages.rb')
+require File.expand_path('lib/static_pages.rb', __dir__)
 
 run StaticPages
